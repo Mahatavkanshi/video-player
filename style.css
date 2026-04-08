@@ -454,6 +454,8 @@ input[type="range"]::-moz-range-thumb {
   color: #9ed5ff;
   font-size: 12px;
   padding: 2px 2px 0;
+  line-height: 1.4;
+  white-space: normal;
 }
 
 .dropHint {

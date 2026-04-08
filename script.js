@@ -77,6 +77,58 @@ const qualitySources = rawQualitySources.length
   ? rawQualitySources
   : [{ src: video.getAttribute("src") || "", label: "Auto", type: "video/mp4" }];
 
+const KNOWN_VIDEO_EXTENSIONS = [
+  "mp4",
+  "m4v",
+  "webm",
+  "ogv",
+  "ogg",
+  "mov",
+  "mkv",
+  "avi",
+  "wmv",
+  "flv",
+  "3gp",
+  "mpeg",
+  "mpg",
+  "ts",
+  "m2ts"
+];
+
+function getFileExtension(name) {
+  const parts = String(name || "").toLowerCase().split(".");
+  return parts.length > 1 ? parts[parts.length - 1] : "";
+}
+
+function isLikelyVideoFile(file) {
+  if (!file) {
+    return false;
+  }
+
+  if (typeof file.type === "string" && file.type.startsWith("video/")) {
+    return true;
+  }
+
+  const extension = getFileExtension(file.name);
+  return KNOWN_VIDEO_EXTENSIONS.includes(extension);
+}
+
+function getCodecRecommendation(extension) {
+  if (extension === "webm") {
+    return "Try MP4 (H.264 + AAC) for best compatibility.";
+  }
+
+  if (["mkv", "avi", "wmv", "flv", "ts", "m2ts"].includes(extension)) {
+    return "Convert to MP4 with H.264 video and AAC audio.";
+  }
+
+  if (["mov", "mpeg", "mpg", "3gp"].includes(extension)) {
+    return "Re-encode to MP4 (H.264 + AAC) if playback fails.";
+  }
+
+  return "Try converting to MP4 (H.264 + AAC).";
+}
+
 function updateStatus(message) {
   statusText.textContent = message;
 }
@@ -631,12 +683,31 @@ document.addEventListener("fullscreenchange", () => {
 });
 
 function loadVideoFile(file) {
-  if (!file || !file.type.startsWith("video/")) {
+  if (!isLikelyVideoFile(file)) {
+    updateStatus("Please choose a supported video file");
     return;
   }
 
   const fileUrl = URL.createObjectURL(file);
   currentFileName = file.name || "video.mp4";
+  const extension = getFileExtension(currentFileName);
+
+  const handleLoaded = () => {
+    video.removeEventListener("loadeddata", handleLoaded);
+    video.removeEventListener("error", handleError);
+    updateStatus("Video loaded");
+  };
+
+  const handleError = () => {
+    video.removeEventListener("loadeddata", handleLoaded);
+    video.removeEventListener("error", handleError);
+    const recommendation = getCodecRecommendation(extension);
+    updateStatus(`This file opened but cannot be decoded in this browser. ${recommendation}`);
+  };
+
+  video.addEventListener("loadeddata", handleLoaded, { once: true });
+  video.addEventListener("error", handleError, { once: true });
+
   video.src = fileUrl;
   video.load();
   quality.innerHTML = '<option value="0">Source file</option>';
