@@ -1,6 +1,5 @@
 :root {
   --text: #f1f1f1;
-  --text-soft: #cfcfcf;
   --brand: #ff0000;
   --panel-soft: rgba(255, 255, 255, 0.12);
 }
@@ -62,9 +61,9 @@ video {
 }
 
 .progressRow {
+  position: relative;
   display: flex;
   align-items: center;
-  position: relative;
 }
 
 .seekTooltip {
@@ -119,6 +118,39 @@ button,
   justify-content: center;
 }
 
+button:hover,
+#fileBtn:hover,
+.downloadBtn:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+#playBtn {
+  min-width: 42px;
+  background: rgba(255, 0, 0, 0.88);
+}
+
+#playBtn:hover {
+  background: rgba(255, 0, 0, 1);
+}
+
+#subtitleToggleBtn.is-active,
+#theaterBtn.is-active,
+#settingsBtn.is-active,
+#pipBtn.is-active {
+  background: rgba(255, 0, 0, 0.75);
+}
+
+#backBtn,
+#forwardBtn,
+#settingsBtn,
+#theaterBtn,
+#fullscreenBtn,
+#pipBtn,
+#subtitleToggleBtn {
+  min-width: 34px;
+  padding: 0 9px;
+}
+
 .iconSvg {
   width: 18px;
   height: 18px;
@@ -155,55 +187,16 @@ button,
   display: block;
 }
 
-button:hover,
-#fileBtn:hover,
-.downloadBtn:hover {
-  background: rgba(255, 255, 255, 0.26);
-}
-
-#playBtn {
-  min-width: 42px;
-  background: rgba(255, 0, 0, 0.88);
-}
-
-#playBtn:hover {
-  background: rgba(255, 0, 0, 1);
-}
-
-#subtitleToggleBtn.is-active,
-#theaterBtn.is-active,
-#settingsBtn.is-active {
-  background: rgba(255, 0, 0, 0.75);
-}
-
-#backBtn,
-#forwardBtn,
-#settingsBtn,
-#theaterBtn,
-#fullscreenBtn,
-#pipBtn,
-#subtitleToggleBtn {
-  min-width: 34px;
-  padding: 0 9px;
-}
-
 button:focus-visible,
 #fileBtn:focus-visible,
 .downloadBtn:focus-visible,
 select:focus-visible,
 input[type="range"]:focus-visible,
-input[type="checkbox"]:focus-visible {
+input[type="checkbox"]:focus-visible,
+.optionItem:focus-visible,
+.settingsNavRow:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
-}
-
-select {
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
-  background: rgba(15, 15, 15, 0.8);
-  color: #fff;
-  height: 34px;
-  padding: 0 12px;
 }
 
 input[type="range"] {
@@ -249,7 +242,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .timeDisplay {
-  color: var(--text);
+  color: #f1f1f1;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
@@ -269,7 +262,9 @@ input[type="range"]::-moz-range-thumb {
   padding: 0;
 }
 
-.muteState {
+.muteState,
+.hidden,
+.hiddenSelect {
   display: none;
 }
 
@@ -277,51 +272,11 @@ input[type="range"]::-moz-range-thumb {
   display: none;
 }
 
-.subtitleLangWrap.hidden,
-.subtleText.hidden {
-  display: none;
-}
-
-.settingSelectWrap {
-  position: relative;
-  min-height: 30px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.settingValue {
-  color: #d3d3d3;
-  font-size: 12px;
-}
-
-.settingChevron {
-  color: #a9a9a9;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.ghostSelect {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none;
-}
-
 .settingsPanel {
   position: absolute;
   right: 12px;
   bottom: 84px;
-  width: min(320px, calc(100% - 24px));
+  width: min(330px, calc(100% - 24px));
   background: rgba(20, 20, 20, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
@@ -332,6 +287,103 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .settingsPanel.hidden {
+  display: none;
+}
+
+.settingsMain,
+.settingsSubmenu {
+  display: grid;
+  gap: 8px;
+}
+
+.settingsSubmenu.hidden {
+  display: none;
+}
+
+.settingsNavRow {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  min-height: 38px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e5e5;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.settingsNavRow:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.settingsNavValue {
+  color: #d3d3d3;
+  font-size: 12px;
+}
+
+.settingChevron {
+  color: #a9a9a9;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.submenuHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  font-size: 13px;
+  color: #e5e5e5;
+  font-weight: 600;
+}
+
+.submenuBack {
+  min-width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.optionList {
+  display: grid;
+  gap: 4px;
+}
+
+.optionItem {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  min-height: 36px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e5e5;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.optionItem:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.checkMark {
+  opacity: 0;
+}
+
+.optionItem.is-selected {
+  background: rgba(255, 0, 0, 0.2);
+  color: #fff;
+}
+
+.optionItem.is-selected .checkMark {
+  opacity: 1;
+}
+
+.subtitleLangWrap.hidden,
+.subtleText.hidden {
   display: none;
 }
 

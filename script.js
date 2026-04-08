@@ -16,11 +16,24 @@ const qualityValue = document.getElementById("qualityValue");
 const subtitleToggleBtn = document.getElementById("subtitleToggleBtn");
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
+const settingsMain = document.getElementById("settingsMain");
+const subtitleSubmenu = document.getElementById("subtitleSubmenu");
+const speedSubmenu = document.getElementById("speedSubmenu");
+const qualitySubmenu = document.getElementById("qualitySubmenu");
+const subtitleMenuBtn = document.getElementById("subtitleMenuBtn");
+const speedMenuBtn = document.getElementById("speedMenuBtn");
+const qualityMenuBtn = document.getElementById("qualityMenuBtn");
+const subtitleBackBtn = document.getElementById("subtitleBackBtn");
+const speedBackBtn = document.getElementById("speedBackBtn");
+const qualityBackBtn = document.getElementById("qualityBackBtn");
 const subtitleLangWrap = document.getElementById("subtitleLangWrap");
 const subtitleOffText = document.getElementById("subtitleOffText");
 const subtitleSelect = document.getElementById("subtitleSelect");
+const subtitleOptions = document.getElementById("subtitleOptions");
 const subtitleValue = document.getElementById("subtitleValue");
 const speedValue = document.getElementById("speedValue");
+const speedOptions = document.getElementById("speedOptions");
+const qualityOptions = document.getElementById("qualityOptions");
 const pipBtn = document.getElementById("pipBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
 const theaterBtn = document.getElementById("theaterBtn");
@@ -95,7 +108,34 @@ function updateSettingsSummaries() {
   const subtitleLabel = subtitleSelect.options[subtitleSelect.selectedIndex]
     ? subtitleSelect.options[subtitleSelect.selectedIndex].text
     : "Off";
-  subtitleValue.textContent = subtitleLabel;
+  subtitleValue.textContent = subtitleLangWrap.classList.contains("hidden") ? "Off" : subtitleLabel;
+}
+
+function syncOptionList(container, selectedValue) {
+  const rows = container.querySelectorAll(".optionItem");
+  rows.forEach((row) => {
+    row.classList.toggle("is-selected", row.dataset.value === selectedValue);
+  });
+}
+
+function buildOptionList(container, selectElement, onSelect) {
+  container.innerHTML = "";
+
+  Array.from(selectElement.options).forEach((option) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "optionItem";
+    button.dataset.value = option.value;
+    button.innerHTML = `<span>${option.text}</span><span class="checkMark">&#10003;</span>`;
+    button.addEventListener("click", () => {
+      selectElement.value = option.value;
+      syncOptionList(container, option.value);
+      onSelect();
+    });
+    container.appendChild(button);
+  });
+
+  syncOptionList(container, selectElement.value);
 }
 
 function updateSeekTooltip(clientX) {
@@ -155,6 +195,9 @@ function populateQualityOptions() {
 
   quality.value = "0";
   quality.disabled = false;
+  buildOptionList(qualityOptions, quality, () => {
+    quality.dispatchEvent(new Event("change"));
+  });
 }
 
 function activateSubtitleTrack(value) {
@@ -193,6 +236,10 @@ function populateSubtitleOptions() {
     subtitleSelect.disabled = false;
     subtitleToggleBtn.disabled = false;
   }
+
+  buildOptionList(subtitleOptions, subtitleSelect, () => {
+    subtitleSelect.dispatchEvent(new Event("change"));
+  });
 }
 
 function setSubtitlesEnabled(enabled) {
@@ -276,10 +323,18 @@ function setSettingsPanelOpen(open) {
   settingsPanel.classList.toggle("hidden", !open);
   settingsBtn.classList.toggle("is-active", open);
   if (open) {
+    showSettingsView("main");
     showControls();
     return;
   }
   scheduleHideControls();
+}
+
+function showSettingsView(view) {
+  settingsMain.classList.toggle("hidden", view !== "main");
+  subtitleSubmenu.classList.toggle("hidden", view !== "subtitle");
+  speedSubmenu.classList.toggle("hidden", view !== "speed");
+  qualitySubmenu.classList.toggle("hidden", view !== "quality");
 }
 
 function updatePlayButtonText() {
@@ -406,6 +461,7 @@ muteIcon.addEventListener("click", () => {
 speed.addEventListener("change", () => {
   video.playbackRate = Number(speed.value);
   localStorage.setItem(SPEED_KEY, speed.value);
+  syncOptionList(speedOptions, speed.value);
   updateSettingsSummaries();
 });
 
@@ -421,6 +477,7 @@ quality.addEventListener("change", () => {
   }
 
   updateDownloadLink(nextSrc, `video-${selected.label}.mp4`);
+  syncOptionList(qualityOptions, quality.value);
   updateSettingsSummaries();
 
   const currentTime = video.currentTime;
@@ -458,6 +515,7 @@ quality.addEventListener("change", () => {
 
 subtitleSelect.addEventListener("change", () => {
   localStorage.setItem(SUBTITLE_LANG_KEY, subtitleSelect.value);
+  syncOptionList(subtitleOptions, subtitleSelect.value);
   updateSettingsSummaries();
   if (subtitleLangWrap.classList.contains("hidden")) {
     return;
@@ -475,6 +533,30 @@ settingsBtn.addEventListener("click", (event) => {
   event.stopPropagation();
   const willOpen = settingsPanel.classList.contains("hidden");
   setSettingsPanelOpen(willOpen);
+});
+
+subtitleMenuBtn.addEventListener("click", () => {
+  showSettingsView("subtitle");
+});
+
+speedMenuBtn.addEventListener("click", () => {
+  showSettingsView("speed");
+});
+
+qualityMenuBtn.addEventListener("click", () => {
+  showSettingsView("quality");
+});
+
+subtitleBackBtn.addEventListener("click", () => {
+  showSettingsView("main");
+});
+
+speedBackBtn.addEventListener("click", () => {
+  showSettingsView("main");
+});
+
+qualityBackBtn.addEventListener("click", () => {
+  showSettingsView("main");
 });
 
 settingsPanel.addEventListener("click", (event) => {
@@ -504,10 +586,8 @@ pipBtn.addEventListener("click", async () => {
   try {
     if (document.pictureInPictureElement) {
       await document.exitPictureInPicture();
-      pipBtn.textContent = "PiP";
     } else {
       await video.requestPictureInPicture();
-      pipBtn.textContent = "Exit PiP";
     }
   } catch (err) {
     console.error("PiP failed:", err);
@@ -550,6 +630,9 @@ function loadVideoFile(file) {
   video.load();
   quality.innerHTML = '<option value="0">Source file</option>';
   quality.disabled = true;
+  buildOptionList(qualityOptions, quality, () => {
+    quality.dispatchEvent(new Event("change"));
+  });
   updateDownloadLink(fileUrl, currentFileName);
   setSubtitlesEnabled(false);
   updateSettingsSummaries();
@@ -728,6 +811,9 @@ if (savedTheater) {
 
 populateQualityOptions();
 populateSubtitleOptions();
+buildOptionList(speedOptions, speed, () => {
+  speed.dispatchEvent(new Event("change"));
+});
 updateSettingsSummaries();
 
 const savedSubtitleLanguage = localStorage.getItem(SUBTITLE_LANG_KEY);

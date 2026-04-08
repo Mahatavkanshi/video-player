@@ -66,36 +66,53 @@
       </div>
 
       <div id="settingsPanel" class="settingsPanel hidden" role="dialog" aria-label="Video settings">
-        <div class="settingsSection">
-          <label for="quality">Quality</label>
-          <div class="settingSelectWrap">
-            <span id="qualityValue" class="settingValue">Auto (1080p)</span>
+        <div id="settingsMain" class="settingsMain">
+          <button id="subtitleMenuBtn" class="settingsNavRow" type="button">
+            <span>Subtitles</span>
+            <span class="settingsNavValue" id="subtitleValue">Off</span>
             <span class="settingChevron">&gt;</span>
-            <select id="quality" class="ghostSelect" aria-label="Video quality"></select>
+          </button>
+
+          <button id="speedMenuBtn" class="settingsNavRow" type="button">
+            <span>Playback speed</span>
+            <span class="settingsNavValue" id="speedValue">Normal</span>
+            <span class="settingChevron">&gt;</span>
+          </button>
+
+          <button id="qualityMenuBtn" class="settingsNavRow" type="button">
+            <span>Quality</span>
+            <span class="settingsNavValue" id="qualityValue">Auto (1080p)</span>
+            <span class="settingChevron">&gt;</span>
+          </button>
+
+          <div class="settingsSection toggles">
+            <label class="switchLabel" for="loopToggle">
+              <input type="checkbox" id="loopToggle">
+              <span>Loop</span>
+            </label>
+            <label class="switchLabel" for="autoplayToggle">
+              <input type="checkbox" id="autoplayToggle">
+              <span>Autoplay</span>
+            </label>
           </div>
+
+          <div class="settingsSection actions">
+            <a id="downloadBtn" class="downloadBtn" href="video.mp4" download>Download</a>
+            <label for="fileInput" id="fileBtn">Open File</label>
+            <input type="file" id="fileInput" accept="video/*">
+          </div>
+
+          <span id="statusText" class="statusText">Ready</span>
         </div>
 
-        <div class="settingsSection">
-          <label for="speed">Playback speed</label>
-          <div class="settingSelectWrap">
-            <span id="speedValue" class="settingValue">Normal</span>
-            <span class="settingChevron">&gt;</span>
-            <select id="speed" class="ghostSelect" aria-label="Playback speed">
-              <option value="0.5">0.5x</option>
-              <option value="1" selected>1x</option>
-              <option value="1.25">1.25x</option>
-              <option value="1.5">1.5x</option>
-              <option value="2">2x</option>
-            </select>
+        <div id="subtitleSubmenu" class="settingsSubmenu hidden">
+          <div class="submenuHeader">
+            <button id="subtitleBackBtn" class="submenuBack" type="button">&lt;</button>
+            <span>Subtitles</span>
           </div>
-        </div>
-
-        <div class="settingsSection">
-          <span>Subtitles</span>
-          <div id="subtitleLangWrap" class="subtitleLangWrap hidden settingSelectWrap">
-            <span id="subtitleValue" class="settingValue">English</span>
-            <span class="settingChevron">&gt;</span>
-            <select id="subtitleSelect" class="ghostSelect" aria-label="Subtitle language">
+          <div id="subtitleLangWrap" class="subtitleLangWrap hidden">
+            <div id="subtitleOptions" class="optionList"></div>
+            <select id="subtitleSelect" class="submenuSelect hiddenSelect" aria-label="Subtitle language">
               <option value="0">English</option>
               <option value="1">Hindi</option>
             </select>
@@ -103,24 +120,29 @@
           <span id="subtitleOffText" class="subtleText">CC is off</span>
         </div>
 
-        <div class="settingsSection toggles">
-          <label class="switchLabel" for="loopToggle">
-            <input type="checkbox" id="loopToggle">
-            <span>Loop</span>
-          </label>
-          <label class="switchLabel" for="autoplayToggle">
-            <input type="checkbox" id="autoplayToggle">
-            <span>Autoplay</span>
-          </label>
+        <div id="speedSubmenu" class="settingsSubmenu hidden">
+          <div class="submenuHeader">
+            <button id="speedBackBtn" class="submenuBack" type="button">&lt;</button>
+            <span>Playback speed</span>
+          </div>
+          <div id="speedOptions" class="optionList"></div>
+          <select id="speed" class="submenuSelect hiddenSelect" aria-label="Playback speed">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
         </div>
 
-        <div class="settingsSection actions">
-          <a id="downloadBtn" class="downloadBtn" href="video.mp4" download>Download</a>
-          <label for="fileInput" id="fileBtn">Open File</label>
-          <input type="file" id="fileInput" accept="video/*">
+        <div id="qualitySubmenu" class="settingsSubmenu hidden">
+          <div class="submenuHeader">
+            <button id="qualityBackBtn" class="submenuBack" type="button">&lt;</button>
+            <span>Quality</span>
+          </div>
+          <div id="qualityOptions" class="optionList"></div>
+          <select id="quality" class="submenuSelect hiddenSelect" aria-label="Video quality"></select>
         </div>
-
-        <span id="statusText" class="statusText">Ready</span>
       </div>
     </div>
   </div>
