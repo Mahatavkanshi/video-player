@@ -10,17 +10,56 @@ const volume = document.getElementById("volume");
 const muteIcon = document.getElementById("muteIcon");
 const muteState = document.getElementById("muteState");
 const speed = document.getElementById("speed");
+const quality = document.getElementById("quality");
+const subtitleToggleBtn = document.getElementById("subtitleToggleBtn");
+const subtitleLangWrap = document.getElementById("subtitleLangWrap");
+const subtitleSelect = document.getElementById("subtitleSelect");
 const pipBtn = document.getElementById("pipBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
+const theaterBtn = document.getElementById("theaterBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const loopToggle = document.getElementById("loopToggle");
+const autoplayToggle = document.getElementById("autoplayToggle");
+const statusText = document.getElementById("statusText");
 const fileInput = document.getElementById("fileInput");
 const dropHint = document.getElementById("dropHint");
 
 const VOLUME_KEY = "playerVolume";
 const MUTED_KEY = "playerMuted";
 const SPEED_KEY = "playerSpeed";
+const LOOP_KEY = "playerLoop";
+const AUTOPLAY_KEY = "playerAutoplay";
+const THEATER_KEY = "playerTheater";
+const SUBTITLE_ENABLED_KEY = "playerSubtitlesEnabled";
+const SUBTITLE_LANG_KEY = "playerSubtitleLanguage";
 let hideControlsTimer;
 let clickTimer;
 let lastVolume = 1;
+let currentFileName = "video.mp4";
+
+function normalizeUrl(src) {
+  try {
+    return new URL(src, window.location.href).href;
+  } catch {
+    return src;
+  }
+}
+
+const rawQualitySources = Array.from(video.querySelectorAll("source"))
+  .map((source, index) => ({
+    src: source.getAttribute("src") || "",
+    label: source.dataset.quality || `Option ${index + 1}`,
+    type: source.getAttribute("type") || "video/mp4"
+  }))
+  .filter((item) => item.src);
+
+const qualitySources = rawQualitySources.length
+  ? rawQualitySources
+  : [{ src: video.getAttribute("src") || "", label: "Auto", type: "video/mp4" }];
+
+function updateStatus(message) {
+  statusText.textContent = message;
+}
 
 function formatTime(value) {
   if (!Number.isFinite(value)) {
@@ -35,6 +74,104 @@ function formatTime(value) {
 
 function updateTimeDisplay() {
   timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+}
+
+function updateDownloadLink(src, fileName) {
+  if (!src) {
+    downloadBtn.removeAttribute("href");
+    downloadBtn.removeAttribute("download");
+    return;
+  }
+
+  downloadBtn.href = src;
+  downloadBtn.setAttribute("download", fileName || "video.mp4");
+}
+
+function populateQualityOptions() {
+  quality.innerHTML = "";
+
+  if (!qualitySources.length) {
+    const fallbackSrc = video.getAttribute("src") || video.currentSrc;
+    if (!fallbackSrc) {
+      quality.disabled = true;
+      quality.innerHTML = '<option value="">N/A</option>';
+      return;
+    }
+
+    const onlyOption = document.createElement("option");
+    onlyOption.value = fallbackSrc;
+    onlyOption.textContent = "Default";
+    quality.appendChild(onlyOption);
+    quality.disabled = true;
+    return;
+  }
+
+  qualitySources.forEach((item, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = item.label;
+    quality.appendChild(option);
+  });
+
+  quality.value = "0";
+  quality.disabled = false;
+}
+
+function activateSubtitleTrack(value) {
+  const tracks = Array.from(video.textTracks);
+  tracks.forEach((track) => {
+    track.mode = "disabled";
+  });
+
+  const targetIndex = Number(value);
+  if (!Number.isFinite(targetIndex) || !tracks[targetIndex]) {
+    return;
+  }
+
+  tracks[targetIndex].mode = "showing";
+}
+
+function populateSubtitleOptions() {
+  const trackElements = Array.from(video.querySelectorAll("track"));
+  subtitleSelect.innerHTML = "";
+
+  trackElements.forEach((trackElement, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = trackElement.label || trackElement.srclang || `Track ${index + 1}`;
+    subtitleSelect.appendChild(option);
+  });
+
+  if (trackElements.length === 0) {
+    const fallbackOption = document.createElement("option");
+    fallbackOption.value = "";
+    fallbackOption.textContent = "No subtitles";
+    subtitleSelect.appendChild(fallbackOption);
+    subtitleSelect.disabled = true;
+    subtitleToggleBtn.disabled = true;
+  } else {
+    subtitleSelect.disabled = false;
+    subtitleToggleBtn.disabled = false;
+  }
+}
+
+function setSubtitlesEnabled(enabled) {
+  if (enabled) {
+    subtitleLangWrap.classList.remove("hidden");
+    subtitleToggleBtn.textContent = "CC On";
+    activateSubtitleTrack(subtitleSelect.value);
+    localStorage.setItem(SUBTITLE_ENABLED_KEY, "true");
+    updateStatus(`Subtitles: ${subtitleSelect.options[subtitleSelect.selectedIndex].text}`);
+    return;
+  }
+
+  subtitleLangWrap.classList.add("hidden");
+  subtitleToggleBtn.textContent = "CC Off";
+  Array.from(video.textTracks).forEach((track) => {
+    track.mode = "disabled";
+  });
+  localStorage.setItem(SUBTITLE_ENABLED_KEY, "false");
+  updateStatus("Subtitles off");
 }
 
 function getCurrentVideoKey() {
@@ -197,6 +334,66 @@ speed.addEventListener("change", () => {
   localStorage.setItem(SPEED_KEY, speed.value);
 });
 
+quality.addEventListener("change", () => {
+  const selected = qualitySources[Number(quality.value)];
+  if (!selected) {
+    return;
+  }
+
+  const nextSrc = selected.src;
+  if (!nextSrc) {
+    return;
+  }
+
+  updateDownloadLink(nextSrc, `video-${selected.label}.mp4`);
+
+  const currentTime = video.currentTime;
+  const wasPaused = video.paused;
+  const activeRate = video.playbackRate;
+  const currentSrc = normalizeUrl(video.currentSrc || video.getAttribute("src") || "");
+  const targetSrc = normalizeUrl(nextSrc);
+
+  if (currentSrc === targetSrc) {
+    updateStatus(`Quality set to ${selected.label}`);
+    return;
+  }
+
+  video.src = nextSrc;
+  video.load();
+
+  video.addEventListener(
+    "loadedmetadata",
+    () => {
+      const safeTime = Number.isFinite(video.duration)
+        ? Math.min(currentTime, Math.max(video.duration - 0.25, 0))
+        : 0;
+      video.currentTime = safeTime;
+      video.playbackRate = activeRate;
+      if (!wasPaused) {
+        video.play().catch((err) => {
+          console.error("Play after quality switch failed:", err);
+        });
+      }
+      updateStatus(`Quality changed to ${selected.label}`);
+    },
+    { once: true }
+  );
+});
+
+subtitleSelect.addEventListener("change", () => {
+  localStorage.setItem(SUBTITLE_LANG_KEY, subtitleSelect.value);
+  if (subtitleLangWrap.classList.contains("hidden")) {
+    return;
+  }
+  activateSubtitleTrack(subtitleSelect.value);
+  updateStatus(`Subtitles: ${subtitleSelect.options[subtitleSelect.selectedIndex].text}`);
+});
+
+subtitleToggleBtn.addEventListener("click", () => {
+  const enabled = subtitleLangWrap.classList.contains("hidden");
+  setSubtitlesEnabled(enabled);
+});
+
 video.addEventListener("volumechange", () => {
   if (!video.muted) {
     volume.value = String(video.volume);
@@ -256,8 +453,14 @@ function loadVideoFile(file) {
   }
 
   const fileUrl = URL.createObjectURL(file);
+  currentFileName = file.name || "video.mp4";
   video.src = fileUrl;
   video.load();
+  quality.innerHTML = '<option value="0">Source file</option>';
+  quality.disabled = true;
+  updateDownloadLink(fileUrl, currentFileName);
+  setSubtitlesEnabled(false);
+  updateStatus("Local video loaded");
   video.play().catch((err) => {
     console.error("Autoplay blocked by browser:", err);
   });
@@ -333,6 +536,14 @@ document.addEventListener("keydown", (event) => {
       event.preventDefault();
       fullscreenBtn.click();
       break;
+    case "t":
+      event.preventDefault();
+      theaterBtn.click();
+      break;
+    case "c":
+      event.preventDefault();
+      subtitleToggleBtn.click();
+      break;
     default:
       break;
   }
@@ -362,6 +573,26 @@ player.addEventListener("mousemove", () => {
 controls.addEventListener("mouseenter", showControls);
 controls.addEventListener("mouseleave", scheduleHideControls);
 
+loopToggle.addEventListener("change", () => {
+  video.loop = loopToggle.checked;
+  localStorage.setItem(LOOP_KEY, String(loopToggle.checked));
+  updateStatus(loopToggle.checked ? "Loop enabled" : "Loop disabled");
+});
+
+autoplayToggle.addEventListener("change", () => {
+  video.autoplay = autoplayToggle.checked;
+  localStorage.setItem(AUTOPLAY_KEY, String(autoplayToggle.checked));
+  updateStatus(autoplayToggle.checked ? "Autoplay enabled" : "Autoplay disabled");
+});
+
+theaterBtn.addEventListener("click", () => {
+  player.classList.toggle("theater-mode");
+  const isTheater = player.classList.contains("theater-mode");
+  theaterBtn.textContent = isTheater ? "Default" : "Theater";
+  localStorage.setItem(THEATER_KEY, String(isTheater));
+  updateStatus(isTheater ? "Theater mode on" : "Theater mode off");
+});
+
 const savedVolume = Number(localStorage.getItem(VOLUME_KEY));
 if (Number.isFinite(savedVolume)) {
   video.volume = Math.min(1, Math.max(0, savedVolume));
@@ -385,6 +616,40 @@ if (savedSpeed) {
   video.playbackRate = Number(savedSpeed);
 }
 
+const savedLoop = localStorage.getItem(LOOP_KEY) === "true";
+loopToggle.checked = savedLoop;
+video.loop = savedLoop;
+
+const savedAutoplay = localStorage.getItem(AUTOPLAY_KEY) === "true";
+autoplayToggle.checked = savedAutoplay;
+video.autoplay = savedAutoplay;
+
+const savedTheater = localStorage.getItem(THEATER_KEY) === "true";
+if (savedTheater) {
+  player.classList.add("theater-mode");
+  theaterBtn.textContent = "Default";
+}
+
+populateQualityOptions();
+populateSubtitleOptions();
+
+const savedSubtitleLanguage = localStorage.getItem(SUBTITLE_LANG_KEY);
+if (savedSubtitleLanguage && subtitleSelect.querySelector(`option[value="${savedSubtitleLanguage}"]`)) {
+  subtitleSelect.value = savedSubtitleLanguage;
+}
+
+const subtitlesEnabled = localStorage.getItem(SUBTITLE_ENABLED_KEY) === "true";
+setSubtitlesEnabled(subtitlesEnabled);
+
+if (qualitySources.length) {
+  const defaultQualityLabel = qualitySources[0].label || "default";
+  updateDownloadLink(qualitySources[0].src, `video-${defaultQualityLabel}.mp4`);
+} else {
+  const fallbackSrc = video.getAttribute("src") || video.currentSrc;
+  updateDownloadLink(fallbackSrc, currentFileName);
+}
+
 updatePlayButtonText();
 updateVolumeIcon();
 updateTimeDisplay();
+updateStatus("Ready");

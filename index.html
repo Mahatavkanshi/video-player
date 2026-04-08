@@ -1,43 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Video Player</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <div class="player">
+    <div class="playerHeader">
+      <h1>Smart Video Player</h1>
+      <p>Quality, subtitles, options, and quick download in one place.</p>
+    </div>
+
     <video id="video">
-      <source src="video.mp4" type="video/mp4">
+      <source src="video.mp4" type="video/mp4" data-quality="1080p">
+      <source src="video.mp4" type="video/mp4" data-quality="720p">
+      <source src="video.mp4" type="video/mp4" data-quality="480p">
+      <track kind="subtitles" src="subtitles-en.vtt" srclang="en" label="English" default>
+      <track kind="subtitles" src="subtitles-hi.vtt" srclang="hi" label="Hindi">
     </video>
     <div id="dropHint" class="dropHint">Drop video file to play</div>
 
     <div class="controls">
-      <button id="playBtn">Play</button>
-      <button id="backBtn" title="Back 5 seconds">&lt;&lt; 5s</button>
-      <button id="forwardBtn" title="Forward 5 seconds">5s &gt;&gt;</button>
-      <input type="range" id="progress" min="0" max="100" value="0">
-      <span id="timeDisplay" class="timeDisplay">00:00 / 00:00</span>
-
-      <div class="volumeWrap">
-        <button id="muteIcon" class="iconBtn" aria-label="Mute or unmute" title="Mute or unmute">&#128266;</button>
-        <span id="muteState" class="muteState">Unmuted</span>
-        <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+      <div class="controlRow wideRow">
+        <button id="playBtn">Play</button>
+        <button id="backBtn" title="Back 5 seconds">&lt;&lt; 5s</button>
+        <button id="forwardBtn" title="Forward 5 seconds">5s &gt;&gt;</button>
+        <input type="range" id="progress" min="0" max="100" value="0">
+        <span id="timeDisplay" class="timeDisplay">00:00 / 00:00</span>
       </div>
 
-      <label for="speed" class="inlineLabel">Speed</label>
-      <select id="speed" aria-label="Playback speed">
-        <option value="0.5">0.5x</option>
-        <option value="1" selected>1x</option>
-        <option value="1.25">1.25x</option>
-        <option value="1.5">1.5x</option>
-        <option value="2">2x</option>
-      </select>
+      <div class="controlRow">
+        <div class="volumeWrap">
+          <button id="muteIcon" class="iconBtn" aria-label="Mute or unmute" title="Mute or unmute">&#128266;</button>
+          <span id="muteState" class="muteState">Unmuted</span>
+          <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+        </div>
 
-      <button id="pipBtn">PiP</button>
-      <button id="fullscreenBtn">Fullscreen</button>
-      <label for="fileInput" id="fileBtn">Open File</label>
-      <input type="file" id="fileInput" accept="video/*">
+        <label for="speed" class="inlineLabel">Speed</label>
+        <select id="speed" aria-label="Playback speed">
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+
+        <label for="quality" class="inlineLabel">Quality</label>
+        <select id="quality" aria-label="Video quality"></select>
+
+        <button id="subtitleToggleBtn" aria-label="Toggle subtitles">CC Off</button>
+        <div id="subtitleLangWrap" class="subtitleLangWrap hidden">
+          <label for="subtitleSelect" class="inlineLabel">Subtitle</label>
+          <select id="subtitleSelect" aria-label="Subtitle language">
+            <option value="0">English</option>
+            <option value="1">Hindi</option>
+          </select>
+        </div>
+
+        <button id="pipBtn">PiP</button>
+        <button id="fullscreenBtn">Fullscreen</button>
+        <button id="theaterBtn">Theater</button>
+        <a id="downloadBtn" class="downloadBtn" href="video.mp4" download>Download</a>
+        <label for="fileInput" id="fileBtn">Open File</label>
+        <input type="file" id="fileInput" accept="video/*">
+      </div>
+
+      <div class="controlRow optionsRow">
+        <span class="optionsLabel">Options</span>
+        <label class="switchLabel" for="loopToggle">
+          <input type="checkbox" id="loopToggle">
+          <span>Loop</span>
+        </label>
+        <label class="switchLabel" for="autoplayToggle">
+          <input type="checkbox" id="autoplayToggle">
+          <span>Autoplay</span>
+        </label>
+        <span id="statusText" class="statusText">Ready</span>
+      </div>
     </div>
   </div>
 
