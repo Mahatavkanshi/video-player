@@ -213,3 +213,9 @@ input[type="range"]::-moz-range-thumb {
     text-align: left;
   }
 }
+
+.muteState {
+  color: #cbd5e1;
+  font-size: 12px;
+  min-width: 52px;
+}

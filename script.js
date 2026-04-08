@@ -8,6 +8,7 @@ const progress = document.getElementById("progress");
 const timeDisplay = document.getElementById("timeDisplay");
 const volume = document.getElementById("volume");
 const muteIcon = document.getElementById("muteIcon");
+const muteState = document.getElementById("muteState");
 const speed = document.getElementById("speed");
 const pipBtn = document.getElementById("pipBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
@@ -89,7 +90,11 @@ function updatePlayButtonText() {
 }
 
 function updateVolumeIcon() {
-  muteIcon.innerHTML = video.muted ? "&#128263;" : "&#128266;";
+  const isMuted = video.muted;
+  muteIcon.innerHTML = isMuted ? "&#128263;" : "&#128266;";
+  muteState.textContent = isMuted ? "Muted" : "Unmuted";
+  muteIcon.title = isMuted ? "Unmute" : "Mute";
+  muteIcon.setAttribute("aria-label", isMuted ? "Unmute" : "Mute");
 }
 
 playBtn.addEventListener("click", () => {
