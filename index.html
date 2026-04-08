@@ -9,11 +9,6 @@
 <body>
 
   <div class="player">
-    <div class="playerHeader">
-      <h1>Smart Video Player</h1>
-      <p>Quality, subtitles, options, and quick download in one place.</p>
-    </div>
-
     <video id="video">
       <source src="video.mp4" type="video/mp4" data-quality="1080p">
       <source src="video.mp4" type="video/mp4" data-quality="720p">
@@ -24,60 +19,107 @@
     <div id="dropHint" class="dropHint">Drop video file to play</div>
 
     <div class="controls">
-      <div class="controlRow wideRow">
-        <button id="playBtn">Play</button>
-        <button id="backBtn" title="Back 5 seconds">&lt;&lt; 5s</button>
-        <button id="forwardBtn" title="Forward 5 seconds">5s &gt;&gt;</button>
+      <div class="progressRow">
         <input type="range" id="progress" min="0" max="100" value="0">
-        <span id="timeDisplay" class="timeDisplay">00:00 / 00:00</span>
+        <div id="seekTooltip" class="seekTooltip hidden">00:00</div>
       </div>
 
-      <div class="controlRow">
-        <div class="volumeWrap">
-          <button id="muteIcon" class="iconBtn" aria-label="Mute or unmute" title="Mute or unmute">&#128266;</button>
-          <span id="muteState" class="muteState">Unmuted</span>
-          <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+      <div class="mainControlRow">
+        <div class="leftControls">
+          <button id="playBtn" title="Play/Pause" aria-label="Play">
+            <svg class="iconSvg icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l12 7-12 7z" fill="currentColor"/></svg>
+            <svg class="iconSvg icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>
+          </button>
+          <button id="backBtn" title="Back 5 seconds" aria-label="Back 5 seconds">
+            <svg class="iconSvg" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 6v12L3 12l8-6zm10 0v12l-8-6 8-6z" fill="currentColor"/></svg>
+          </button>
+          <button id="forwardBtn" title="Forward 5 seconds" aria-label="Forward 5 seconds">
+            <svg class="iconSvg" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 6v12l8-6-8-6zM3 6v12l8-6-8-6z" fill="currentColor"/></svg>
+          </button>
+          <div class="volumeWrap">
+            <button id="muteIcon" class="iconBtn" aria-label="Mute or unmute" title="Mute or unmute">
+              <svg class="iconSvg icon-volume" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a3.5 3.5 0 0 0-2.2-3.25v6.5A3.5 3.5 0 0 0 16.5 12zm-2.2-7.63v2.06a6 6 0 0 1 0 11.14v2.06a8 8 0 0 0 0-15.26z" fill="currentColor"/></svg>
+              <svg class="iconSvg icon-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h4l5 4V6L7 10H3zm10.6 1.99l2.12 2.12 1.41-1.41-2.12-2.12 2.12-2.12-1.41-1.41-2.12 2.12-2.12-2.12-1.41 1.41 2.12 2.12-2.12 2.12 1.41 1.41 2.12-2.12z" fill="currentColor"/></svg>
+            </button>
+            <span id="muteState" class="muteState">Unmuted</span>
+            <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+          </div>
+          <span id="timeDisplay" class="timeDisplay">00:00 / 00:00</span>
         </div>
 
-        <label for="speed" class="inlineLabel">Speed</label>
-        <select id="speed" aria-label="Playback speed">
-          <option value="0.5">0.5x</option>
-          <option value="1" selected>1x</option>
-          <option value="1.25">1.25x</option>
-          <option value="1.5">1.5x</option>
-          <option value="2">2x</option>
-        </select>
-
-        <label for="quality" class="inlineLabel">Quality</label>
-        <select id="quality" aria-label="Video quality"></select>
-
-        <button id="subtitleToggleBtn" aria-label="Toggle subtitles">CC Off</button>
-        <div id="subtitleLangWrap" class="subtitleLangWrap hidden">
-          <label for="subtitleSelect" class="inlineLabel">Subtitle</label>
-          <select id="subtitleSelect" aria-label="Subtitle language">
-            <option value="0">English</option>
-            <option value="1">Hindi</option>
-          </select>
+        <div class="rightControls">
+          <button id="subtitleToggleBtn" aria-label="Toggle subtitles">CC</button>
+          <button id="settingsBtn" aria-label="Player settings" title="Settings">
+            <svg class="iconSvg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94a7.48 7.48 0 0 0 .05-.94 7.48 7.48 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.19 7.19 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.58.23-1.13.54-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.03.31-.05.62-.05.94s.02.63.05.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.61.22l2.39-.96c.5.4 1.05.71 1.63.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .45-.18.5-.42l.36-2.54c.58-.23 1.13-.54 1.63-.94l2.39.96c.22.09.48 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z" fill="currentColor"/></svg>
+          </button>
+          <button id="pipBtn" aria-label="Picture in picture">
+            <svg class="iconSvg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3V5zm10 6h7v7h-7v-7z" fill="currentColor"/></svg>
+          </button>
+          <button id="theaterBtn" title="Theater mode" aria-label="Theater mode">
+            <svg class="iconSvg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3V6zm2 2v8h14V8H5z" fill="currentColor"/></svg>
+          </button>
+          <button id="fullscreenBtn" title="Fullscreen" aria-label="Fullscreen">
+            <svg class="iconSvg icon-enter-full" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm16 0h-2v2h-2v2h4v-4z" fill="currentColor"/></svg>
+            <svg class="iconSvg icon-exit-full" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H7v2H5v2h4V3zm10 2h-2V3h-2v4h4V5zM5 17h2v-2h2v-2H5v4zm10-2h2v2h2v-4h-4v2z" fill="currentColor"/></svg>
+          </button>
         </div>
-
-        <button id="pipBtn">PiP</button>
-        <button id="fullscreenBtn">Fullscreen</button>
-        <button id="theaterBtn">Theater</button>
-        <a id="downloadBtn" class="downloadBtn" href="video.mp4" download>Download</a>
-        <label for="fileInput" id="fileBtn">Open File</label>
-        <input type="file" id="fileInput" accept="video/*">
       </div>
 
-      <div class="controlRow optionsRow">
-        <span class="optionsLabel">Options</span>
-        <label class="switchLabel" for="loopToggle">
-          <input type="checkbox" id="loopToggle">
-          <span>Loop</span>
-        </label>
-        <label class="switchLabel" for="autoplayToggle">
-          <input type="checkbox" id="autoplayToggle">
-          <span>Autoplay</span>
-        </label>
+      <div id="settingsPanel" class="settingsPanel hidden" role="dialog" aria-label="Video settings">
+        <div class="settingsSection">
+          <label for="quality">Quality</label>
+          <div class="settingSelectWrap">
+            <span id="qualityValue" class="settingValue">Auto (1080p)</span>
+            <span class="settingChevron">&gt;</span>
+            <select id="quality" class="ghostSelect" aria-label="Video quality"></select>
+          </div>
+        </div>
+
+        <div class="settingsSection">
+          <label for="speed">Playback speed</label>
+          <div class="settingSelectWrap">
+            <span id="speedValue" class="settingValue">Normal</span>
+            <span class="settingChevron">&gt;</span>
+            <select id="speed" class="ghostSelect" aria-label="Playback speed">
+              <option value="0.5">0.5x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settingsSection">
+          <span>Subtitles</span>
+          <div id="subtitleLangWrap" class="subtitleLangWrap hidden settingSelectWrap">
+            <span id="subtitleValue" class="settingValue">English</span>
+            <span class="settingChevron">&gt;</span>
+            <select id="subtitleSelect" class="ghostSelect" aria-label="Subtitle language">
+              <option value="0">English</option>
+              <option value="1">Hindi</option>
+            </select>
+          </div>
+          <span id="subtitleOffText" class="subtleText">CC is off</span>
+        </div>
+
+        <div class="settingsSection toggles">
+          <label class="switchLabel" for="loopToggle">
+            <input type="checkbox" id="loopToggle">
+            <span>Loop</span>
+          </label>
+          <label class="switchLabel" for="autoplayToggle">
+            <input type="checkbox" id="autoplayToggle">
+            <span>Autoplay</span>
+          </label>
+        </div>
+
+        <div class="settingsSection actions">
+          <a id="downloadBtn" class="downloadBtn" href="video.mp4" download>Download</a>
+          <label for="fileInput" id="fileBtn">Open File</label>
+          <input type="file" id="fileInput" accept="video/*">
+        </div>
+
         <span id="statusText" class="statusText">Ready</span>
       </div>
     </div>

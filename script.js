@@ -5,6 +5,7 @@ const playBtn = document.getElementById("playBtn");
 const backBtn = document.getElementById("backBtn");
 const forwardBtn = document.getElementById("forwardBtn");
 const progress = document.getElementById("progress");
+const seekTooltip = document.getElementById("seekTooltip");
 const timeDisplay = document.getElementById("timeDisplay");
 const volume = document.getElementById("volume");
 const muteIcon = document.getElementById("muteIcon");
@@ -12,7 +13,10 @@ const muteState = document.getElementById("muteState");
 const speed = document.getElementById("speed");
 const quality = document.getElementById("quality");
 const subtitleToggleBtn = document.getElementById("subtitleToggleBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
 const subtitleLangWrap = document.getElementById("subtitleLangWrap");
+const subtitleOffText = document.getElementById("subtitleOffText");
 const subtitleSelect = document.getElementById("subtitleSelect");
 const pipBtn = document.getElementById("pipBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
@@ -74,6 +78,24 @@ function formatTime(value) {
 
 function updateTimeDisplay() {
   timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+}
+
+function updateSeekTooltip(clientX) {
+  if (!Number.isFinite(video.duration) || video.duration <= 0) {
+    seekTooltip.classList.add("hidden");
+    return;
+  }
+
+  const rect = progress.getBoundingClientRect();
+  if (!rect.width) {
+    return;
+  }
+
+  const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+  const previewTime = ratio * video.duration;
+  seekTooltip.textContent = formatTime(previewTime);
+  seekTooltip.style.left = `${ratio * rect.width}px`;
+  seekTooltip.classList.remove("hidden");
 }
 
 function updateDownloadLink(src, fileName) {
@@ -158,7 +180,9 @@ function populateSubtitleOptions() {
 function setSubtitlesEnabled(enabled) {
   if (enabled) {
     subtitleLangWrap.classList.remove("hidden");
-    subtitleToggleBtn.textContent = "CC On";
+    subtitleOffText.classList.add("hidden");
+    subtitleToggleBtn.textContent = "CC";
+    subtitleToggleBtn.classList.add("is-active");
     activateSubtitleTrack(subtitleSelect.value);
     localStorage.setItem(SUBTITLE_ENABLED_KEY, "true");
     updateStatus(`Subtitles: ${subtitleSelect.options[subtitleSelect.selectedIndex].text}`);
@@ -166,7 +190,9 @@ function setSubtitlesEnabled(enabled) {
   }
 
   subtitleLangWrap.classList.add("hidden");
-  subtitleToggleBtn.textContent = "CC Off";
+  subtitleOffText.classList.remove("hidden");
+  subtitleToggleBtn.textContent = "CC";
+  subtitleToggleBtn.classList.remove("is-active");
   Array.from(video.textTracks).forEach((track) => {
     track.mode = "disabled";
   });
@@ -217,13 +243,27 @@ function scheduleHideControls() {
     return;
   }
 
+  if (!settingsPanel.classList.contains("hidden")) {
+    return;
+  }
+
   hideControlsTimer = setTimeout(() => {
     player.classList.add("hide-controls");
   }, 2000);
 }
 
+function setSettingsPanelOpen(open) {
+  settingsPanel.classList.toggle("hidden", !open);
+  settingsBtn.classList.toggle("is-active", open);
+  if (open) {
+    showControls();
+    return;
+  }
+  scheduleHideControls();
+}
+
 function updatePlayButtonText() {
-  playBtn.textContent = video.paused ? "Play" : "Pause";
+  playBtn.textContent = video.paused ? ">" : "||";
 }
 
 function updateVolumeIcon() {
@@ -282,6 +322,18 @@ progress.addEventListener("input", () => {
 
   const time = (Number(progress.value) / 100) * video.duration;
   video.currentTime = time;
+});
+
+progress.addEventListener("mousemove", (event) => {
+  updateSeekTooltip(event.clientX);
+});
+
+progress.addEventListener("mouseenter", (event) => {
+  updateSeekTooltip(event.clientX);
+});
+
+progress.addEventListener("mouseleave", () => {
+  seekTooltip.classList.add("hidden");
 });
 
 video.addEventListener("timeupdate", () => {
@@ -394,6 +446,22 @@ subtitleToggleBtn.addEventListener("click", () => {
   setSubtitlesEnabled(enabled);
 });
 
+settingsBtn.addEventListener("click", (event) => {
+  event.stopPropagation();
+  const willOpen = settingsPanel.classList.contains("hidden");
+  setSettingsPanelOpen(willOpen);
+});
+
+settingsPanel.addEventListener("click", (event) => {
+  event.stopPropagation();
+});
+
+document.addEventListener("click", () => {
+  if (!settingsPanel.classList.contains("hidden")) {
+    setSettingsPanelOpen(false);
+  }
+});
+
 video.addEventListener("volumechange", () => {
   if (!video.muted) {
     volume.value = String(video.volume);
@@ -430,13 +498,14 @@ video.addEventListener("leavepictureinpicture", () => {
 });
 
 fullscreenBtn.addEventListener("click", async () => {
+  setSettingsPanelOpen(false);
   try {
     if (!document.fullscreenElement) {
       await video.requestFullscreen();
-      fullscreenBtn.textContent = "Exit Fullscreen";
+      fullscreenBtn.textContent = "x";
     } else {
       await document.exitFullscreen();
-      fullscreenBtn.textContent = "Fullscreen";
+      fullscreenBtn.textContent = "[ ]";
     }
   } catch (err) {
     console.error("Fullscreen failed:", err);
@@ -444,7 +513,7 @@ fullscreenBtn.addEventListener("click", async () => {
 });
 
 document.addEventListener("fullscreenchange", () => {
-  fullscreenBtn.textContent = document.fullscreenElement ? "Exit Fullscreen" : "Fullscreen";
+  fullscreenBtn.textContent = document.fullscreenElement ? "x" : "[ ]";
 });
 
 function loadVideoFile(file) {
@@ -544,6 +613,9 @@ document.addEventListener("keydown", (event) => {
       event.preventDefault();
       subtitleToggleBtn.click();
       break;
+    case "escape":
+      setSettingsPanelOpen(false);
+      break;
     default:
       break;
   }
@@ -588,7 +660,7 @@ autoplayToggle.addEventListener("change", () => {
 theaterBtn.addEventListener("click", () => {
   player.classList.toggle("theater-mode");
   const isTheater = player.classList.contains("theater-mode");
-  theaterBtn.textContent = isTheater ? "Default" : "Theater";
+  theaterBtn.classList.toggle("is-active", isTheater);
   localStorage.setItem(THEATER_KEY, String(isTheater));
   updateStatus(isTheater ? "Theater mode on" : "Theater mode off");
 });
@@ -627,7 +699,7 @@ video.autoplay = savedAutoplay;
 const savedTheater = localStorage.getItem(THEATER_KEY) === "true";
 if (savedTheater) {
   player.classList.add("theater-mode");
-  theaterBtn.textContent = "Default";
+  theaterBtn.classList.add("is-active");
 }
 
 populateQualityOptions();
