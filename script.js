@@ -323,18 +323,29 @@ function setSettingsPanelOpen(open) {
   settingsPanel.classList.toggle("hidden", !open);
   settingsBtn.classList.toggle("is-active", open);
   if (open) {
-    showSettingsView("main");
+    showSettingsView("main", "back");
     showControls();
     return;
   }
   scheduleHideControls();
 }
 
-function showSettingsView(view) {
-  settingsMain.classList.toggle("hidden", view !== "main");
-  subtitleSubmenu.classList.toggle("hidden", view !== "subtitle");
-  speedSubmenu.classList.toggle("hidden", view !== "speed");
-  qualitySubmenu.classList.toggle("hidden", view !== "quality");
+function showSettingsView(view, direction = "forward") {
+  const panes = {
+    main: settingsMain,
+    subtitle: subtitleSubmenu,
+    speed: speedSubmenu,
+    quality: qualitySubmenu
+  };
+
+  Object.values(panes).forEach((pane) => {
+    pane.classList.add("hidden");
+    pane.classList.remove("slide-in-forward", "slide-in-back");
+  });
+
+  const targetPane = panes[view] || settingsMain;
+  targetPane.classList.remove("hidden");
+  targetPane.classList.add(direction === "back" ? "slide-in-back" : "slide-in-forward");
 }
 
 function updatePlayButtonText() {
@@ -536,27 +547,27 @@ settingsBtn.addEventListener("click", (event) => {
 });
 
 subtitleMenuBtn.addEventListener("click", () => {
-  showSettingsView("subtitle");
+  showSettingsView("subtitle", "forward");
 });
 
 speedMenuBtn.addEventListener("click", () => {
-  showSettingsView("speed");
+  showSettingsView("speed", "forward");
 });
 
 qualityMenuBtn.addEventListener("click", () => {
-  showSettingsView("quality");
+  showSettingsView("quality", "forward");
 });
 
 subtitleBackBtn.addEventListener("click", () => {
-  showSettingsView("main");
+  showSettingsView("main", "back");
 });
 
 speedBackBtn.addEventListener("click", () => {
-  showSettingsView("main");
+  showSettingsView("main", "back");
 });
 
 qualityBackBtn.addEventListener("click", () => {
-  showSettingsView("main");
+  showSettingsView("main", "back");
 });
 
 settingsPanel.addEventListener("click", (event) => {
